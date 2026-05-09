@@ -20,6 +20,13 @@ const ACCOUNT_COLORS = [
   "#06b6d4", "#84cc16", "#f97316", "#ec4899", "#14b8a6",
 ];
 
+const ACCOUNT_TYPE_LABELS: Record<string, string> = {
+  CHECKING: "Checking",
+  SAVINGS: "Savings",
+  BUSINESS: "Business",
+  CREDIT_CARD: "Credit Card",
+};
+
 async function fetchAccounts() {
   const res = await fetch("/api/accounts");
   const json = await res.json();
