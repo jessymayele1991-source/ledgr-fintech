@@ -1,0 +1,281 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// USER & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  supabaseId String  @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts         Account[]
+  clients          Client[]
+  categories       Category[]
+  transactions     Transaction[]
+  imports          Import[]
+  auditLogs        AuditLog[]
+  learningRules    UserLearningRule[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// ACCOUNTS (own bank accounts)
+// ─────────────────────────────────────────────
+
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  name        String
+  iban        String?
+  bic         String?
+  currency    String      @default("EUR")
+  type        AccountType @default(CHECKING)
+  color       String?     // hex color for UI
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] @relation("AccountTransactions")
+
+  @@unique([userId, iban])
+  @@index([userId])
+  @@index([iban])
+  @@map("accounts")
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT
+  INVESTMENT
+  CASH
+}
+
+// ─────────────────────────────────────────────
+// CLIENTS (customers / vendors)
+// ─────────────────────────────────────────────
+
+model Client {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  email       String?
+  phone       String?
+  vatNumber   String?
+  iban        String?
+  address     String?
+  city        String?
+  country     String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@index([userId, name])
+  @@map("clients")
+}
+
+// ─────────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────────
+
+model Category {
+  id          String          @id @default(cuid())
+  userId      String
+  name        String
+  type        CategoryType
+  color       String?
+  icon        String?
+  parentId    String?
+  isSystem    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]    @relation("CategoryHierarchy")
+  transactions Transaction[]
+  learningRules UserLearningRule[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@map("categories")
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+// ─────────────────────────────────────────────
+// TRANSACTIONS
+// ─────────────────────────────────────────────
+
+model Transaction {
+  id                String          @id @default(cuid())
+  userId            String
+
+  // Core financial data
+  date              DateTime
+  amount            Decimal         @db.Decimal(19, 4)  // Always positive
+  signedAmount      Decimal         @db.Decimal(19, 4)  // Negative for debits
+  currency          String          @default("EUR")
+  type              TransactionType
+
+  // Classification
+  categoryId        String?
+  clientId          String?
+  accountId         String?
+
+  // Counterparty
+  counterpartyName  String?
+  counterpartyIban  String?
+
+  // Description / Reference
+  description       String?
+  reference         String?
+
+  // Transfer linking
+  transferPairId    String?         // Links debit+credit sides of same transfer
+
+  // Import tracking
+  importId          String?
+  transactionHash   String          // Dedup hash
+  rawData           Json?           // Original imported row
+
+  // Manual override flags
+  isManual          Boolean         @default(false)
+  isReconciled      Boolean         @default(false)
+  notes             String?
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  client       Client?       @relation(fields: [clientId], references: [id])
+  account      Account?      @relation("AccountTransactions", fields: [accountId], references: [id])
+  import       Import?       @relation(fields: [importId], references: [id])
+
+  @@unique([userId, transactionHash])
+  @@index([userId])
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([userId, accountId])
+  @@index([userId, categoryId])
+  @@index([userId, clientId])
+  @@index([userId, date, type])
+  @@index([transactionHash])
+  @@index([transferPairId])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  REFUND
+}
+
+// ─────────────────────────────────────────────
+// IMPORTS
+// ─────────────────────────────────────────────
+
+model Import {
+  id           String       @id @default(cuid())
+  userId       String
+  fileName     String
+  fileType     String       // csv, xlsx
+  accountId    String?
+  status       ImportStatus @default(PENDING)
+  totalRows    Int          @default(0)
+  importedRows Int          @default(0)
+  skippedRows  Int          @default(0)
+  errorRows    Int          @default(0)
+  errors       Json?        // Array of error messages
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("imports")
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+// ── User Learning Rules ─────────────────────────────────────────────────────
+// Stores user overrides for AI categorization — these always win over built-ins.
+
+model UserLearningRule {
+  id                   String   @id @default(cuid())
+  userId               String
+  counterpartyIban     String?  // Match by exact counterparty IBAN
+  merchantNameContains String?  // Match if merchant name contains this (case-insensitive)
+  descriptionContains  String?  // Match if description contains this
+  categoryId           String   // Category to assign
+  categorySlug         String   // Slug for quick lookup without join
+  categoryName         String   // Denormalized for display
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_learning_rules")
+}
+
+// ── Audit Log ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String
+  timestamp    DateTime @default(now())
+  action       String   // "TRANSACTION_IMPORTED", "TRANSACTION_DELETED", etc.
+  entityType   String   // "Transaction", "Import", "Category", etc.
+  entityId     String?
+  before       Json?    // Previous state (for edits/deletes)
+  after        Json?    // New state (for creates/edits)
+  summary      String?  // Human-readable description
+  metadata     Json?    // Extra context (import filename, batch size, etc.)
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
