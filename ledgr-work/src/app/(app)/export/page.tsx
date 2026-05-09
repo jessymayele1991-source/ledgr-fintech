@@ -27,7 +27,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
     label: t("export.optionAccountant"),
     description: t("export.optionAccountantDesc"),
     icon: <FileText className="w-5 h-5" />,
-    badge: {t("common.recommended")},
+    badge: t("common.recommended"),
   },
   {
     id: "vat-summary",
