@@ -74,7 +74,7 @@ function AccountModal({
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">{account ? {t("accounts.editAccount")} : "New Account"}</h2>
+          <h2 className="font-semibold text-gray-900">{account ? t("accounts.editAccount") : "New Account"}</h2>
           <button onClick={onClose} className="btn-ghost p-1.5"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={onSubmit} className="p-6 space-y-4">
@@ -127,7 +127,7 @@ function AccountModal({
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
             <button type="submit" disabled={mutation.isPending} className="btn-primary flex-1">
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              {account ? {t("common.save")} : "Create Account"}
+              {account ? t("common.save") : "Create Account"}
             </button>
           </div>
         </form>
