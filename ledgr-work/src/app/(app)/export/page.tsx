@@ -15,28 +15,6 @@ interface ExportOption {
   badge?: string;
 }
 
-const EXPORT_OPTIONS: ExportOption[] = [
-  {
-    id: "csv",
-    label: t("export.optionCsv"),
-    description: t("export.optionCsvDesc"),
-    icon: <Table className="w-5 h-5" />,
-  },
-  {
-    id: "accountant",
-    label: t("export.optionAccountant"),
-    description: t("export.optionAccountantDesc"),
-    icon: <FileText className="w-5 h-5" />,
-    badge: t("common.recommended"),
-  },
-  {
-    id: "vat-summary",
-    label: t("export.optionVat"),
-    description: t("export.optionVatDesc"),
-    icon: <Receipt className="w-5 h-5" />,
-  },
-];
-
 function buildExportUrl(format: ExportFormat, params: Record<string, string>): string {
   const qs = new URLSearchParams({ format, ...params });
   return `/api/export?${qs.toString()}`;
@@ -44,6 +22,29 @@ function buildExportUrl(format: ExportFormat, params: Record<string, string>): s
 
 export default function ExportPage() {
   const { t } = useI18n();
+
+  const EXPORT_OPTIONS: ExportOption[] = [
+    {
+      id: "csv",
+      label: t("export.optionCsv"),
+      description: t("export.optionCsvDesc"),
+      icon: <Table className="w-5 h-5" />,
+    },
+    {
+      id: "accountant",
+      label: t("export.optionAccountant"),
+      description: t("export.optionAccountantDesc"),
+      icon: <FileText className="w-5 h-5" />,
+      badge: t("common.recommended"),
+    },
+    {
+      id: "vat-summary",
+      label: t("export.optionVat"),
+      description: t("export.optionVatDesc"),
+      icon: <Receipt className="w-5 h-5" />,
+    },
+  ];
+
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>("accountant");
   const [dateFrom, setDateFrom] = useState(() => {
     const d = new Date();
