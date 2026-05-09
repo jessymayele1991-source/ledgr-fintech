@@ -106,6 +106,7 @@ async function runImport(params: {
 // ─────────────────────────────────────────────
 
 function Steps({ current }: { current: 1 | 2 | 3 }) {
+  const { t } = useI18n();
   const steps = [t("import.stepUpload"), t("import.stepPreview"), t("import.stepImport")];
   return (
     <div className="flex items-center gap-0">
@@ -140,17 +141,48 @@ function Steps({ current }: { current: 1 | 2 | 3 }) {
 // COLUMN REMAPPER
 // ─────────────────────────────────────────────
 
-const MAPPING_FIELDS = [
-  { key: "date", label: t("import.colDate"), required: true },
-  { key: "amount", label: t("import.colAmount"), required: true },
-  { key: "creditDebit", label: "Credit/Debit Indicator", required: false },
-  { key: "debitAmount", label: "Debit Amount (split)", required: false },
-  { key: "creditAmount", label: "Credit Amount (split)", required: false },
-  { key: "description", label: t("import.colDescription"), required: false },
-  { key: "counterpartyName", label: t("import.colCounterparty"), required: false },
-  { key: "counterpartyIban", label: t("import.colIban"), required: false },
-  { key: "reference", label: t("import.colDate"), required: false },
-];
+function ColumnRemapperContent({
+  headers,
+  mapping,
+  onChange,
+}: {
+  headers: string[];
+  mapping: Record<string, string>;
+  onChange: (mapping: Record<string, string>) => void;
+}) {
+  const { t } = useI18n();
+  const MAPPING_FIELDS = [
+    { key: "date", label: t("import.colDate"), required: true },
+    { key: "amount", label: t("import.colAmount"), required: true },
+    { key: "creditDebit", label: "Credit/Debit Indicator", required: false },
+    { key: "debitAmount", label: "Debit Amount (split)", required: false },
+    { key: "creditAmount", label: "Credit Amount (split)", required: false },
+    { key: "description", label: t("import.colDescription"), required: false },
+    { key: "counterpartyName", label: t("import.colCounterparty"), required: false },
+    { key: "counterpartyIban", label: t("import.colIban"), required: false },
+    { key: "reference", label: t("import.colDate"), required: false },
+  ];
+
+  return (
+    <>
+      {MAPPING_FIELDS.map(({ key, label, required }) => (
+        <div key={key}>
+          <label className="label text-xs">{label}</label>
+          <select
+            value={mapping[key] ?? ""}
+            onChange={(e) => onChange({ ...mapping, [key]: e.target.value || "" })}
+            className="input text-sm py-1.5"
+          >
+            <option value="">— not mapped —</option>
+            {headers.map((h) => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
+        </div>
+      ))}
+    </>
+  );
+}
 
 function ColumnRemapper({
   headers,
@@ -181,21 +213,7 @@ function ColumnRemapper({
 
       {open && (
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {MAPPING_FIELDS.map(({ key, label, required }) => (
-            <div key={key}>
-              <label className="label text-xs">{label}</label>
-              <select
-                value={mapping[key] ?? ""}
-                onChange={(e) => onChange({ ...mapping, [key]: e.target.value || "" })}
-                className="input text-sm py-1.5"
-              >
-                <option value="">— not mapped —</option>
-                {headers.map((h) => (
-                  <option key={h} value={h}>{h}</option>
-                ))}
-              </select>
-            </div>
-          ))}
+          <ColumnRemapperContent headers={headers} mapping={mapping} onChange={onChange} />
         </div>
       )}
     </div>
@@ -318,6 +336,7 @@ function PreviewTable({ rows, capped }: { rows: PreviewRow[]; capped: boolean })
 type Step = 1 | 2 | 3;
 
 export default function ImportPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -394,9 +413,9 @@ export default function ImportPage() {
     previewMutation.mutate({ file, mapping: Object.keys(mapping).length ? mapping : undefined });
   };
 
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   // STEP 1: Upload
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   const renderStep1 = () => (
     <div className="space-y-6">
       {/* Drop zone */}
@@ -514,9 +533,9 @@ export default function ImportPage() {
     </div>
   );
 
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   // STEP 2: Preview & Column Mapping
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   const renderStep2 = () => {
     if (!preview) return null;
 
@@ -646,9 +665,9 @@ export default function ImportPage() {
     );
   };
 
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   // STEP 3: Result
-  // ─────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────
   const renderStep3 = () => {
     if (!result) return null;
     const success = result.status === "COMPLETED";
