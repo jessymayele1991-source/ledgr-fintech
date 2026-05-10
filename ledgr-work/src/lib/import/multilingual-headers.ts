@@ -334,7 +334,6 @@ export const HEADER_ALIASES: Record<string, HeaderAlias> = {
   // Amount
   "importo":                      { canonical: "amount", language: "it", weight: 100 },
   "importo (eur)":                { canonical: "amount", language: "it", weight: 100 },
-  "saldo":                        { canonical: "balance", language: "it", weight: 100 },
   "saldo contabile":              { canonical: "balance", language: "it", weight: 95 },
 
   // Debit/Credit
