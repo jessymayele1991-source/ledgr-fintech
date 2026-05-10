@@ -102,7 +102,13 @@ export async function POST(request: NextRequest) {
     const parsed = suggestSchema.safeParse(body);
     if (!parsed.success) return apiError(parsed.error.message, 400);
     const userRules = await loadUserRules(user.id);
-    const suggestions = suggestCategories(parsed.data, userRules);
+    const suggestions = suggestCategories({
+      counterpartyName: parsed.data.counterpartyName ?? null,
+      counterpartyIban: parsed.data.counterpartyIban ?? null,
+      description: parsed.data.description ?? null,
+      reference: parsed.data.reference ?? null,
+      signedAmount: parsed.data.signedAmount,
+    }, userRules);
     return apiSuccess({ suggestions });
   }
 
