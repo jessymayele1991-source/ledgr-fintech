@@ -1,4 +1,6 @@
 import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { dashboardQuerySchema } from "@/lib/validations/schemas";
@@ -13,6 +15,28 @@ import type { Transaction } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
+    // ── Auth diagnostics ──────────────────────────────────────────────────
+    const cookieStore = cookies();
+    const allCookies = cookieStore.getAll();
+    console.log("[dashboard] cookies present:", allCookies.map((c) => c.name));
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll() {},
+        },
+      }
+    );
+    const { data: { user: sbUser }, error: sbError } = await supabase.auth.getUser();
+    console.log("[dashboard] SUPABASE_URL set:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("[dashboard] getUser error:", sbError?.message ?? "none");
+    console.log("[dashboard] getUser userId:", sbUser?.id ?? "null");
+    console.log("[dashboard] getUser email:", sbUser?.email ?? "null");
+    // ─────────────────────────────────────────────────────────────────────
+
     const user = await getCurrentUser();
     if (!user) return apiError("Unauthorized", 401);
 
