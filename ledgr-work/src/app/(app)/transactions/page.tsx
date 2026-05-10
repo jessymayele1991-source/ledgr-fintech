@@ -95,6 +95,7 @@ function FilterPanel({
   categories: Array<{ id: string; name: string; type: string }>;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="card p-5 space-y-4 border-indigo-100">
       <div className="flex items-center justify-between">
