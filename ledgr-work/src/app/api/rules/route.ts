@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const createRuleSchema = z.object({
   counterpartyIban: z.string().optional(),
   merchantNameContains: z.string().min(2).max(200).optional(),
@@ -19,7 +21,7 @@ const createRuleSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const rules = await prisma.userLearningRule.findMany({
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const body = await request.json().catch(() => null);

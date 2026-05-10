@@ -4,9 +4,11 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { createAccountSchema } from "@/lib/validations/schemas";
 import { normalizeIban } from "@/lib/accounting/engine";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const accounts = await prisma.account.findMany({
@@ -23,7 +25,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const body = await request.json();

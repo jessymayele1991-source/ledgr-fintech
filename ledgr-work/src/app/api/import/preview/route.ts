@@ -4,6 +4,8 @@ import { processImportFile } from "@/lib/import/engine";
 import { validateTransactionBatch } from "@/lib/import/validator";
 import { columnMappingSchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 /**
  * POST /api/import/preview
  *
@@ -14,7 +16,7 @@ import { columnMappingSchema } from "@/lib/validations/schemas";
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const formData = await request.formData();

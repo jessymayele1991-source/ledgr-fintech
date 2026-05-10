@@ -5,6 +5,8 @@ import { suggestCategories, getBestCategory, bulkCategorize } from "@/lib/catego
 import { auditTransactionCategorized, auditBulkCategorized, persistAuditLog } from "@/lib/audit/logger";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHEMAS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -43,7 +45,7 @@ const autoApplySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const { searchParams } = request.nextUrl;
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const body = await request.json().catch(() => null);
@@ -205,7 +207,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const body = await request.json().catch(() => ({}));

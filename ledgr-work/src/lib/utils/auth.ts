@@ -1,27 +1,37 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import type { User } from "@/types";
 
-export async function getCurrentUser(): Promise<User | null> {
-  try {
-    const cookieStore = cookies();
+export async function createSupabaseServerClient(request?: NextRequest) {
+  const cookieStore = await cookies();
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {
-            // No-op in API routes — middleware handles session refresh
-          },
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request?.cookies.getAll() ?? cookieStore.getAll();
         },
-      }
-    );
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch (err) {
+            console.warn("[auth] unable to persist refreshed Supabase cookies:", err);
+          }
+        },
+      },
+    }
+  );
+}
 
+export async function getCurrentUser(request?: NextRequest): Promise<User | null> {
+  try {
+    const supabase = await createSupabaseServerClient(request);
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) console.error("[auth] getUser error:", error.message);
     if (!user) return null;

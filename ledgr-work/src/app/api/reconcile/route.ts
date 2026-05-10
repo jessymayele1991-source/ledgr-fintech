@@ -4,6 +4,8 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { reconcile, formatReconciliationReport } from "@/lib/reconciliation/engine";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const reconcileSchema = z.object({
   accountId: z.string().optional(),
   /** Opening balance from bank statement */
@@ -28,7 +30,7 @@ const reconcileSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const body = await request.json().catch(() => null);
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const { searchParams } = request.nextUrl;

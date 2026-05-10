@@ -2,11 +2,13 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 
+export const dynamic = "force-dynamic";
+
 interface Params { params: { id: string } }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const rule = await prisma.userLearningRule.findFirst({

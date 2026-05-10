@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/audit
  *
@@ -14,7 +16,7 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
  */
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const { searchParams } = request.nextUrl;

@@ -3,11 +3,13 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { updateCategorySchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 interface Params { params: { id: string } }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const existing = await prisma.category.findFirst({
@@ -36,9 +38,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
 
     const existing = await prisma.category.findFirst({
