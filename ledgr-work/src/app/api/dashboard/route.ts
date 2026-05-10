@@ -35,31 +35,43 @@ export async function GET(request: NextRequest) {
 
     const { dateFrom, dateTo, accountId } = parsed.data;
 
-    let query = supabase
+    let txQuery = supabase
       .from("transactions")
-      .select("*, category:categories(*)")
+      .select("*")
       .eq("user_id", user.id)
       .order("date", { ascending: true });
 
-    if (dateFrom) query = query.gte("date", dateFrom);
-    if (dateTo) query = query.lte("date", dateTo);
-    if (accountId) query = query.eq("accountId", accountId);
+    if (dateFrom) txQuery = txQuery.gte("date", dateFrom);
+    if (dateTo) txQuery = txQuery.lte("date", dateTo);
+    if (accountId) txQuery = txQuery.eq("account_id", accountId);
 
-    const { data: rows, error: txError } = await query;
+    const { data: rows, error: txError } = await txQuery;
     if (txError) {
       console.error("[dashboard] query error:", txError.message);
       return apiError("Internal server error", 500);
     }
 
+    const { data: catRows } = await supabase
+      .from("categories")
+      .select("id, name, color")
+      .eq("user_id", user.id);
+
+    const categoryMap = new Map((catRows ?? []).map((c) => [c.id, c]));
+
     const transactions: Transaction[] = (rows ?? []).map((tx) => ({
-      ...tx,
-      amount: Number(tx.amount),
-      signedAmount: Number(tx.signedAmount),
+      id: tx.id,
       date: new Date(tx.date),
-      rawData: tx.rawData ?? null,
-      category: tx.category ?? null,
+      amount: Number(tx.amount),
+      signedAmount: Number(tx.signed_amount ?? tx.signedAmount ?? 0),
+      type: tx.type,
+      description: tx.description ?? null,
+      counterpartyName: tx.counterparty_name ?? tx.counterpartyName ?? null,
+      currency: tx.currency,
+      categoryId: tx.category_id ?? tx.categoryId ?? null,
+      category: tx.category_id ? (categoryMap.get(tx.category_id) ?? null) : null,
       client: null,
       account: null,
+      rawData: tx.raw_data ?? tx.rawData ?? null,
     }));
 
     const summary = calculateSummary(transactions);
@@ -76,19 +88,21 @@ export async function GET(request: NextRequest) {
         id: string;
         date: string;
         amount: number | string;
-        signedAmount: number | string;
+        signed_amount?: number | string;
+        signedAmount?: number | string;
         type: string;
         description: string | null;
-        counterpartyName: string | null;
+        counterparty_name?: string | null;
+        counterpartyName?: string | null;
         currency: string;
       }) => ({
         id: tx.id,
         date: new Date(tx.date).toISOString(),
         amount: Number(tx.amount),
-        signedAmount: Number(tx.signedAmount),
+        signedAmount: Number(tx.signed_amount ?? tx.signedAmount ?? 0),
         type: tx.type,
         description: tx.description,
-        counterpartyName: tx.counterpartyName,
+        counterpartyName: tx.counterparty_name ?? tx.counterpartyName ?? null,
         currency: tx.currency,
       }));
 
