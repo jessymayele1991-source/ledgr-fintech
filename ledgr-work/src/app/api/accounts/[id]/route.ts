@@ -6,9 +6,9 @@ import { normalizeIban } from "@/lib/accounting/engine";
 
 interface Params { params: { id: string } }
 
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
     const account = await prisma.account.findFirst({ where: { id: params.id, userId: user.id } });
     if (!account) return apiError("Account not found", 404);
@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
     const existing = await prisma.account.findFirst({ where: { id: params.id, userId: user.id } });
     if (!existing) return apiError("Account not found", 404);
@@ -40,9 +40,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return apiError("Unauthorized", 401);
     const existing = await prisma.account.findFirst({ where: { id: params.id, userId: user.id } });
     if (!existing) return apiError("Account not found", 404);

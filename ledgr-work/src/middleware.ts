@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers = {}) {
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set({ name, value, ...options })
           );
@@ -23,6 +23,9 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
+          Object.entries(headers).forEach(([key, value]) => {
+            response.headers.set(key, value);
+          });
         },
       },
     }
@@ -32,8 +35,16 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isApiRoute = pathname.startsWith("/api/");
 
   if (!user && !isPublic) {
+    if (isApiRoute) {
+      return NextResponse.json(
+        { data: null, error: { message: "Unauthorized" } },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
@@ -45,5 +56,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
