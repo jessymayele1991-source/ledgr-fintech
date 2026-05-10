@@ -60,18 +60,31 @@ export async function GET(request: NextRequest) {
 
     const transactions: Transaction[] = (rows ?? []).map((tx) => ({
       id: tx.id,
+      userId: tx.user_id ?? tx.userId ?? "",
       date: new Date(tx.date),
       amount: Number(tx.amount),
       signedAmount: Number(tx.signed_amount ?? tx.signedAmount ?? 0),
       type: tx.type,
       description: tx.description ?? null,
+      reference: tx.reference ?? null,
       counterpartyName: tx.counterparty_name ?? tx.counterpartyName ?? null,
+      counterpartyIban: tx.counterparty_iban ?? tx.counterpartyIban ?? null,
       currency: tx.currency,
       categoryId: tx.category_id ?? tx.categoryId ?? null,
+      clientId: tx.client_id ?? tx.clientId ?? null,
+      accountId: tx.account_id ?? tx.accountId ?? null,
+      transferPairId: tx.transfer_pair_id ?? tx.transferPairId ?? null,
+      importId: tx.import_id ?? tx.importId ?? null,
+      transactionHash: tx.transaction_hash ?? tx.transactionHash ?? "",
+      rawData: tx.raw_data ?? tx.rawData ?? null,
+      isManual: tx.is_manual ?? tx.isManual ?? false,
+      isReconciled: tx.is_reconciled ?? tx.isReconciled ?? false,
+      notes: tx.notes ?? null,
+      createdAt: new Date(tx.created_at ?? tx.createdAt),
+      updatedAt: new Date(tx.updated_at ?? tx.updatedAt),
       category: tx.category_id ? (categoryMap.get(tx.category_id) ?? null) : null,
       client: null,
       account: null,
-      rawData: tx.raw_data ?? tx.rawData ?? null,
     }));
 
     const summary = calculateSummary(transactions);
