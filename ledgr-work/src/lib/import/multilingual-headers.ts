@@ -43,7 +43,7 @@ export type CanonicalField =
   | "accountName"
   | "statementNumber";
 
-export type Language = "nl" | "en" | "de" | "fr" | "it" | "es" | "pt" | "unknown";
+export type Language = "nl" | "en" | "de" | "fr" | "unknown";
 
 /** A single header alias with its language and confidence weight */
 export interface HeaderAlias {
@@ -323,142 +323,6 @@ export const HEADER_ALIASES: Record<string, HeaderAlias> = {
   "statement number":             { canonical: "statementNumber", language: "en", weight: 100 },
   "kontoauszug":                  { canonical: "statementNumber", language: "de", weight: 100 },
 
-  // ── ITALIAN (IT) ─────────────────────────────────────────────────────────────
-
-  // Date
-  "data":                         { canonical: "date", language: "it", weight: 100 },
-  "data operazione":              { canonical: "date", language: "it", weight: 100 },
-  "data valuta":                  { canonical: "valueDate", language: "it", weight: 90 },
-  "data contabile":               { canonical: "date", language: "it", weight: 95 },
-
-  // Amount
-  "importo":                      { canonical: "amount", language: "it", weight: 100 },
-  "importo (eur)":                { canonical: "amount", language: "it", weight: 100 },
-  "saldo contabile":              { canonical: "balance", language: "it", weight: 95 },
-
-  // Debit/Credit
-  "dare":                         { canonical: "debitAmount", language: "it", weight: 100 },
-  "avere":                        { canonical: "creditAmount", language: "it", weight: 100 },
-  "segno":                        { canonical: "creditDebit", language: "it", weight: 90 },
-  "addebitare":                   { canonical: "debitAmount", language: "it", weight: 85 },
-  "accreditare":                  { canonical: "creditAmount", language: "it", weight: 85 },
-
-  // Description
-  "descrizione":                  { canonical: "description", language: "it", weight: 100 },
-  "causale":                      { canonical: "description", language: "it", weight: 100 },
-  "dettagli":                     { canonical: "description", language: "it", weight: 85 },
-  "nota":                         { canonical: "description", language: "it", weight: 80 },
-
-  // Counterparty
-  "beneficiario":                 { canonical: "counterpartyName", language: "it", weight: 100 },
-  "ordinante":                    { canonical: "counterpartyName", language: "it", weight: 90 },
-  "controparte":                  { canonical: "counterpartyName", language: "it", weight: 85 },
-  "iban beneficiario":            { canonical: "counterpartyIban", language: "it", weight: 100 },
-  "iban controparte":             { canonical: "counterpartyIban", language: "it", weight: 95 },
-
-  // Reference
-  "riferimento":                  { canonical: "reference", language: "it", weight: 100 },
-  "numero riferimento":           { canonical: "reference", language: "it", weight: 95 },
-  "codice operazione":            { canonical: "reference", language: "it", weight: 90 },
-
-  // Account
-  "conto":                        { canonical: "accountIban", language: "it", weight: 75 },
-  "numero conto":                 { canonical: "accountIban", language: "it", weight: 90 },
-  "iban conto":                   { canonical: "accountIban", language: "it", weight: 95 },
-
-  // Currency
-  "valuta":                       { canonical: "currency", language: "it", weight: 100 },
-
-  // ── SPANISH (ES) ─────────────────────────────────────────────────────────────
-
-  // Date
-  "fecha":                        { canonical: "date", language: "es", weight: 100 },
-  "fecha operación":              { canonical: "date", language: "es", weight: 100 },
-  "fecha valor":                  { canonical: "valueDate", language: "es", weight: 90 },
-  "fecha contable":               { canonical: "date", language: "es", weight: 95 },
-  "fecha de operación":           { canonical: "date", language: "es", weight: 95 },
-
-  // Amount
-  "importe":                      { canonical: "amount", language: "es", weight: 100 },
-  "importe (eur)":                { canonical: "amount", language: "es", weight: 100 },
-  "saldo final":                  { canonical: "balance", language: "es", weight: 95 },
-
-  // Debit/Credit
-  "cargo":                        { canonical: "debitAmount", language: "es", weight: 100 },
-  "abono":                        { canonical: "creditAmount", language: "es", weight: 100 },
-  "debe":                         { canonical: "debitAmount", language: "es", weight: 95 },
-  "haber":                        { canonical: "creditAmount", language: "es", weight: 95 },
-
-  // Description
-  "concepto":                     { canonical: "description", language: "es", weight: 100 },
-  "descripción":                  { canonical: "description", language: "es", weight: 100 },
-  "descripcion":                  { canonical: "description", language: "es", weight: 100 },
-  "detalle":                      { canonical: "description", language: "es", weight: 85 },
-  "observaciones":                { canonical: "description", language: "es", weight: 80 },
-
-  // Counterparty
-  "beneficiario":                 { canonical: "counterpartyName", language: "es", weight: 85 },
-  "ordenante":                    { canonical: "counterpartyName", language: "es", weight: 90 },
-  "iban beneficiario":            { canonical: "counterpartyIban", language: "es", weight: 100 },
-  "número de cuenta":             { canonical: "counterpartyIban", language: "es", weight: 85 },
-
-  // Reference
-  "referencia":                   { canonical: "reference", language: "es", weight: 100 },
-  "número de referencia":         { canonical: "reference", language: "es", weight: 95 },
-  "número de operación":          { canonical: "reference", language: "es", weight: 90 },
-
-  // Account
-  "cuenta":                       { canonical: "accountIban", language: "es", weight: 75 },
-  "número de cuenta propia":      { canonical: "accountIban", language: "es", weight: 95 },
-  "iban cuenta":                  { canonical: "accountIban", language: "es", weight: 95 },
-
-  // Currency
-  "moneda":                       { canonical: "currency", language: "es", weight: 100 },
-
-  // ── PORTUGUESE (PT) ──────────────────────────────────────────────────────────
-
-  // Date
-  "data":                         { canonical: "date", language: "pt", weight: 90 },  // shared with IT but lower weight
-  "data da operação":             { canonical: "date", language: "pt", weight: 100 },
-  "data valor":                   { canonical: "valueDate", language: "pt", weight: 90 },
-  "data de movimento":            { canonical: "date", language: "pt", weight: 95 },
-
-  // Amount
-  "valor":                        { canonical: "amount", language: "pt", weight: 100 },
-  "montante":                     { canonical: "amount", language: "pt", weight: 100 },
-  "saldo final":                  { canonical: "balance", language: "pt", weight: 90 },
-  "saldo após movimento":         { canonical: "balance", language: "pt", weight: 100 },
-
-  // Debit/Credit
-  "débito":                       { canonical: "debitAmount", language: "pt", weight: 100 },
-  "crédito":                      { canonical: "creditAmount", language: "pt", weight: 100 },
-  "debito":                       { canonical: "debitAmount", language: "pt", weight: 95 },
-  "credito":                      { canonical: "creditAmount", language: "pt", weight: 95 },
-
-  // Description
-  "descrição":                    { canonical: "description", language: "pt", weight: 100 },
-  "descricao":                    { canonical: "description", language: "pt", weight: 100 },
-  "movimento":                    { canonical: "description", language: "pt", weight: 85 },
-  "detalhe":                      { canonical: "description", language: "pt", weight: 80 },
-
-  // Counterparty
-  "beneficiário":                 { canonical: "counterpartyName", language: "pt", weight: 100 },
-  "beneficiario":                 { canonical: "counterpartyName", language: "pt", weight: 90 },
-  "iban do beneficiário":         { canonical: "counterpartyIban", language: "pt", weight: 100 },
-  "número de conta":              { canonical: "counterpartyIban", language: "pt", weight: 85 },
-
-  // Reference
-  "referência":                   { canonical: "reference", language: "pt", weight: 100 },
-  "referencia":                   { canonical: "reference", language: "pt", weight: 95 },
-  "número de referência":         { canonical: "reference", language: "pt", weight: 95 },
-
-  // Account
-  "conta":                        { canonical: "accountIban", language: "pt", weight: 75 },
-  "iban conta":                   { canonical: "accountIban", language: "pt", weight: 95 },
-  "número de conta própria":      { canonical: "accountIban", language: "pt", weight: 90 },
-
-  // Currency
-  "moeda":                        { canonical: "currency", language: "pt", weight: 100 },
 };
 
 
@@ -504,7 +368,7 @@ export function resolveHeader(raw: string): HeaderAlias | null {
  * Detect the most likely language of a header row.
  */
 export function detectLanguage(headers: string[]): Language {
-  const votes: Record<Language, number> = { nl: 0, en: 0, de: 0, fr: 0, it: 0, es: 0, pt: 0, unknown: 0 };
+  const votes: Record<Language, number> = { nl: 0, en: 0, de: 0, fr: 0, unknown: 0 };
 
   for (const h of headers) {
     const resolved = resolveHeader(h);
