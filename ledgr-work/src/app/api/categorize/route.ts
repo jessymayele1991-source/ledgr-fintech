@@ -295,5 +295,10 @@ async function loadUserRules(userId: string) {
       createdAt: true,
     },
   });
-  return rules;
+  return rules.map((r) => ({
+    ...r,
+    counterpartyIban: r.counterpartyIban ?? undefined,
+    merchantNameContains: r.merchantNameContains ?? undefined,
+    descriptionContains: r.descriptionContains ?? undefined,
+  }));
 }
