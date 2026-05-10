@@ -11,8 +11,11 @@ export async function getCurrentUser(): Promise<User | null> {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // No-op in API routes — middleware handles session refresh
         },
       },
     }
