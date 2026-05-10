@@ -4,6 +4,8 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { createAccountSchema } from "@/lib/validations/schemas";
 import { normalizeIban } from "@/lib/accounting/engine";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);

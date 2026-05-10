@@ -4,6 +4,8 @@ import { processImportFile } from "@/lib/import/engine";
 import { validateTransactionBatch } from "@/lib/import/validator";
 import { columnMappingSchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 /**
  * POST /api/import/preview
  *

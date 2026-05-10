@@ -11,6 +11,8 @@ import {
 import type { Prisma } from "@prisma/client";
 import type { Transaction } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request);

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { updateTransactionSchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 interface Params {
   params: { id: string };
 }

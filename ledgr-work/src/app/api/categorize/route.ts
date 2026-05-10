@@ -5,6 +5,8 @@ import { suggestCategories, getBestCategory, bulkCategorize } from "@/lib/catego
 import { auditTransactionCategorized, auditBulkCategorized, persistAuditLog } from "@/lib/audit/logger";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHEMAS
 // ─────────────────────────────────────────────────────────────────────────────

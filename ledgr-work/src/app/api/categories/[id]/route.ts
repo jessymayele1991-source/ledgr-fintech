@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { updateCategorySchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 interface Params { params: { id: string } }
 
 export async function PATCH(request: NextRequest, { params }: Params) {

@@ -6,6 +6,8 @@ import type { ExportOptions } from "@/lib/export/engine";
 import type { Prisma } from "@prisma/client";
 import type { Transaction } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/export
  *

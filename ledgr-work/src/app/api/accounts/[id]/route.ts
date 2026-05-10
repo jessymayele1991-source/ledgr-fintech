@@ -4,6 +4,8 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { updateAccountSchema } from "@/lib/validations/schemas";
 import { normalizeIban } from "@/lib/accounting/engine";
 
+export const dynamic = "force-dynamic";
+
 interface Params { params: { id: string } }
 
 export async function GET(request: NextRequest, { params }: Params) {

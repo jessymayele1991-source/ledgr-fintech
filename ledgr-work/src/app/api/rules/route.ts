@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const createRuleSchema = z.object({
   counterpartyIban: z.string().optional(),
   merchantNameContains: z.string().min(2).max(200).optional(),

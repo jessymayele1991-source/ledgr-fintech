@@ -4,6 +4,8 @@ import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 import { reconcile, formatReconciliationReport } from "@/lib/reconciliation/engine";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const reconcileSchema = z.object({
   accountId: z.string().optional(),
   /** Opening balance from bank statement */

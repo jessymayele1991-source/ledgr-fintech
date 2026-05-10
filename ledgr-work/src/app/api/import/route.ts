@@ -9,6 +9,8 @@ import { generateTransactionHash, determineTransactionType } from "@/lib/account
 import { normalizeIban } from "@/lib/import/number-parser";
 import type { NormalizedTransaction } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 const ALLOWED_EXTENSIONS = ["csv", "xlsx", "xls", "mt940", "mt942", "mta", "sta", "xml", "txt", "pdf", "940"];
 const BATCH_SIZE = 50; // DB writes per batch
 

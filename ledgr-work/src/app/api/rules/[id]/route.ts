@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
 
+export const dynamic = "force-dynamic";
+
 interface Params { params: { id: string } }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
