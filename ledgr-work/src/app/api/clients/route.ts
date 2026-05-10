@@ -33,25 +33,26 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("clients")
       .select("*")
-      .eq("userId", user.id)
-      .order("name", { ascending: true });
+      .eq("user_id", user.id)
+      .order("company_name", { ascending: true });
 
-    if (!includeInactive) query = query.eq("isActive", true);
+    if (!includeInactive) query = query.neq("status", "inactive");
 
     if (search) {
       const s = search.replace(/[%_]/g, "\\$&");
-      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,vatNumber.ilike.%${s}%`);
+      query = query.or(`company_name.ilike.%${s}%,contact_person.ilike.%${s}%,email.ilike.%${s}%`);
     }
 
     const { data: clients, error: dbError } = await query;
     if (dbError) {
-      console.error("[clients] query error:", dbError.message);
-      return apiError(`DB_ERROR: ${dbError.message} | code: ${dbError.code} | details: ${dbError.details}`, 500);
+      console.error("[clients] GET error:", dbError.message);
+      return apiError("Internal server error", 500);
     }
 
     return apiSuccess(clients ?? []);
   } catch (err) {
-    return Response.json({ error: (err as Error).message, stack: (err as Error).stack }, { status: 500 });
+    console.error("[clients] GET error:", err instanceof Error ? err.message : String(err));
+    return apiError("Internal server error", 500);
   }
 }
 
@@ -71,27 +72,21 @@ export async function POST(request: NextRequest) {
     const { data: client, error: insertError } = await supabase
       .from("clients")
       .insert({
-        userId: user.id,
-        name: d.name,
+        user_id: user.id,
+        company_name: d.name,
         email: d.email || null,
-        phone: d.phone || null,
-        vatNumber: d.vatNumber || null,
-        iban: d.iban || null,
-        address: d.address || null,
-        city: d.city || null,
-        country: d.country || null,
-        notes: d.notes || null,
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error("[clients] insert error full:", JSON.stringify(insertError));
-      return apiError(`DB_ERROR: ${insertError.message} | code: ${insertError.code} | details: ${insertError.details}`, 500);
+      console.error("[clients] POST error:", insertError.message);
+      return apiError("Internal server error", 500);
     }
 
     return apiSuccess(client, 201);
   } catch (err) {
-    return Response.json({ error: (err as Error).message, stack: (err as Error).stack }, { status: 500 });
+    console.error("[clients] POST error:", err instanceof Error ? err.message : String(err));
+    return apiError("Internal server error", 500);
   }
 }

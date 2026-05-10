@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { apiError, apiSuccess } from "@/lib/utils/auth";
 import { updateClientSchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 interface Params {
   params: { id: string };
 }
@@ -33,7 +35,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       .from("clients")
       .select("*")
       .eq("id", params.id)
-      .eq("userId", user.id)
+      .eq("user_id", user.id)
       .single();
 
     if (dbError || !client) return apiError("Client not found", 404);
@@ -41,8 +43,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const { count } = await supabase
       .from("transactions")
       .select("*", { count: "exact", head: true })
-      .eq("clientId", params.id)
-      .eq("userId", user.id);
+      .eq("client_id", params.id)
+      .eq("user_id", user.id);
 
     return apiSuccess({ ...client, _count: { transactions: count ?? 0 } });
   } catch (err) {
@@ -64,22 +66,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     const d = parsed.data;
     const updateData: Record<string, unknown> = {};
-    if (d.name      !== undefined) updateData.name      = d.name;
-    if (d.email     !== undefined) updateData.email     = d.email     || null;
-    if (d.phone     !== undefined) updateData.phone     = d.phone     || null;
-    if (d.vatNumber !== undefined) updateData.vatNumber = d.vatNumber || null;
-    if (d.iban      !== undefined) updateData.iban      = d.iban      || null;
-    if (d.address   !== undefined) updateData.address   = d.address   || null;
-    if (d.city      !== undefined) updateData.city      = d.city      || null;
-    if (d.country   !== undefined) updateData.country   = d.country   || null;
-    if (d.notes     !== undefined) updateData.notes     = d.notes     || null;
-    if (d.isActive  !== undefined) updateData.isActive  = d.isActive;
+
+    // Map alleen bestaande kolommen
+    if (d.name  !== undefined) updateData.company_name    = d.name;
+    if (d.email !== undefined) updateData.email           = d.email || null;
 
     const { data: updated, error: updateError } = await supabase
       .from("clients")
       .update(updateData)
       .eq("id", params.id)
-      .eq("userId", user.id)
+      .eq("user_id", user.id)
       .select()
       .single();
 
@@ -104,9 +100,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
     const { error: updateError } = await supabase
       .from("clients")
-      .update({ isActive: false })
+      .update({ status: "inactive" })
       .eq("id", params.id)
-      .eq("userId", user.id);
+      .eq("user_id", user.id);
 
     if (updateError) {
       console.error("[clients/[id]] DELETE error:", updateError.message);
