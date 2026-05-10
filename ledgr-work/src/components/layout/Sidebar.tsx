@@ -73,9 +73,9 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           )}
         </div>
 
-        {/* Scrollbaar gebied: nav-items + instellingen + uitloggen */}
-        <div className="sidebar-scroll-wrapper" style={{ backgroundColor: "red", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {/* Scrollbaar gebied — flex-1 op nav verwijderd zodat de container kan scrollen */}
+        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
+          <nav className="px-3 py-4 space-y-0.5">
             {navItems.map(({ href, label, icon: Icon }) => {
               const active = pathname.startsWith(href);
               return (
@@ -90,7 +90,7 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             })}
           </nav>
 
-          <div className="flex-shrink-0 px-3 py-4 border-t border-gray-100 space-y-0.5">
+          <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
             <Link href="/settings" onClick={handleNavClick} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
               <Settings className="w-4 h-4 text-gray-400" />
               {t("nav.settings")}
