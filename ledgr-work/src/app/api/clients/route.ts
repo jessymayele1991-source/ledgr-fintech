@@ -31,14 +31,14 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("clients")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("userId", user.id)
       .order("name", { ascending: true });
 
-    if (!includeInactive) query = query.eq("is_active", true);
+    if (!includeInactive) query = query.eq("isActive", true);
 
     if (search) {
       const s = search.replace(/[%_]/g, "\\$&");
-      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,vat_number.ilike.%${s}%`);
+      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,vatNumber.ilike.%${s}%`);
     }
 
     const { data: clients, error: dbError } = await query;
@@ -70,11 +70,11 @@ export async function POST(request: NextRequest) {
     const { data: client, error: insertError } = await supabase
       .from("clients")
       .insert({
-        user_id: user.id,
+        userId: user.id,
         name: d.name,
         email: d.email || null,
         phone: d.phone || null,
-        vat_number: d.vatNumber || null,
+        vatNumber: d.vatNumber || null,
         iban: d.iban || null,
         address: d.address || null,
         city: d.city || null,
