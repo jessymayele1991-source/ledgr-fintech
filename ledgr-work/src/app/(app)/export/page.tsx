@@ -254,7 +254,7 @@ export default function ExportPage() {
               />
             </div>
             <p className="text-xs text-amber-600 mt-2">
-              ⚠ VAT amounts are estimates only. Always consult a qualified accountant for official VAT returns.
+              Warning: VAT amounts are estimates only. Always consult a qualified accountant for official VAT returns.
             </p>
           </div>
         )}
@@ -281,7 +281,7 @@ export default function ExportPage() {
           className="btn-primary w-full justify-center py-3 text-base"
         >
           {loading ? (
-            <><Loader2 className="w-5 h-5 animate-spin" /> Generating export…</>
+            <><Loader2 className="w-5 h-5 animate-spin" /> Generating export...</>
           ) : (
             <><Download className="w-5 h-5" /> Download {EXPORT_OPTIONS.find((o) => o.id === selectedFormat)?.label}</>
           )}
