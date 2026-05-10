@@ -53,7 +53,8 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         "md:sticky md:translate-x-0 md:w-60 md:z-auto",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        {/* Header — altijd zichtbaar bovenaan */}
+        <div className="flex-shrink-0 px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-white" />
@@ -72,30 +73,33 @@ export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           )}
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const active = pathname.startsWith(href);
-            return (
-              <Link key={href} href={href} onClick={handleNavClick} className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                active ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}>
-                <Icon className={cn("w-4 h-4 flex-shrink-0", active ? "text-indigo-600" : "text-gray-400")} />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Scrollbaar gebied: nav-items + instellingen + uitloggen */}
+        <div className="sidebar-scroll-wrapper" style={{ backgroundColor: "red", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <nav className="flex-1 px-3 py-4 space-y-0.5">
+            {navItems.map(({ href, label, icon: Icon }) => {
+              const active = pathname.startsWith(href);
+              return (
+                <Link key={href} href={href} onClick={handleNavClick} className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  active ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                )}>
+                  <Icon className={cn("w-4 h-4 flex-shrink-0", active ? "text-indigo-600" : "text-gray-400")} />
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="px-3 py-4 border-t border-gray-100 space-y-0.5">
-          <Link href="/settings" onClick={handleNavClick} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-            <Settings className="w-4 h-4 text-gray-400" />
-            {t("nav.settings")}
-          </Link>
-          <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
-            <LogOut className="w-4 h-4 text-gray-400" />
-            {t("nav.signOut")}
-          </button>
+          <div className="flex-shrink-0 px-3 py-4 border-t border-gray-100 space-y-0.5">
+            <Link href="/settings" onClick={handleNavClick} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+              <Settings className="w-4 h-4 text-gray-400" />
+              {t("nav.settings")}
+            </Link>
+            <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+              <LogOut className="w-4 h-4 text-gray-400" />
+              {t("nav.signOut")}
+            </button>
+          </div>
         </div>
       </aside>
     </>
