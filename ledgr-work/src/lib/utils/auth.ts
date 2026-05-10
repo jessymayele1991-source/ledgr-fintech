@@ -1,45 +1,40 @@
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/lib/db/prisma";
 import type { User } from "@/types";
 
 export async function getCurrentUser(): Promise<User | null> {
   const cookieStore = cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-    },
-    global: {
-      headers: {
-        cookie: cookieStore.toString(),
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
       },
-    },
-  });
+    }
+  );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  if (!session?.user) return null;
-
-  // Upsert user in our DB
-  const user = await prisma.user.upsert({
-    where: { supabaseId: session.user.id },
+  const dbUser = await prisma.user.upsert({
+    where: { supabaseId: user.id },
     update: {
-      email: session.user.email!,
-      name: session.user.user_metadata?.name ?? null,
+      email: user.email!,
+      name: user.user_metadata?.name ?? null,
     },
     create: {
-      supabaseId: session.user.id,
-      email: session.user.email!,
-      name: session.user.user_metadata?.name ?? null,
+      supabaseId: user.id,
+      email: user.email!,
+      name: user.user_metadata?.name ?? null,
     },
   });
 
-  return user as User;
+  return dbUser as User;
 }
 
 export function apiError(message: string, status: number = 400, code?: string) {
