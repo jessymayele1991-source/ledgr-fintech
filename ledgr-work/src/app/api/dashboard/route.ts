@@ -86,11 +86,13 @@ export async function GET(request: NextRequest) {
       account: null,
     }));
 
-    const summary = calculateSummary(transactions);
-    const monthly = calculateMonthlyData(transactions);
-    const yearly = calculateYearlyData(transactions);
-    const expenseBreakdown = calculateCategoryBreakdown(transactions, "EXPENSE");
-    const incomeBreakdown = calculateCategoryBreakdown(transactions, "INCOME");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tx = transactions as any[];
+    const summary = calculateSummary(tx);
+    const monthly = calculateMonthlyData(tx);
+    const yearly = calculateYearlyData(tx);
+    const expenseBreakdown = calculateCategoryBreakdown(tx, "EXPENSE");
+    const incomeBreakdown = calculateCategoryBreakdown(tx, "INCOME");
 
     const recentTransactions = (rows ?? [])
       .filter((tx: { type: string }) => tx.type !== "TRANSFER")
