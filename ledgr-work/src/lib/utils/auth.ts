@@ -26,22 +26,41 @@ export async function getCurrentUser(): Promise<User | null> {
     if (error) console.error("[auth] getUser error:", error.message);
     if (!user) return null;
 
-    const dbUser = await prisma.user.upsert({
-      where: { supabaseId: user.id },
-      update: {
-        email: user.email!,
-        name: user.user_metadata?.name ?? null,
-      },
-      create: {
-        supabaseId: user.id,
-        email: user.email!,
-        name: user.user_metadata?.name ?? null,
-      },
-    });
+    const email = user.email;
+    if (!email) {
+      console.error("[auth] Supabase user missing email:", user.id);
+      return null;
+    }
 
-    return dbUser as User;
+    try {
+      const dbUser = await prisma.user.upsert({
+        where: { supabaseId: user.id },
+        update: {
+          email,
+          name: user.user_metadata?.name ?? null,
+        },
+        create: {
+          supabaseId: user.id,
+          email,
+          name: user.user_metadata?.name ?? null,
+        },
+      });
+      return dbUser as User;
+    } catch (prismaErr) {
+      // Upsert can fail on email unique constraint if same email exists
+      // under a different supabaseId — fall back to find-then-update.
+      console.error("[auth] upsert failed:", prismaErr instanceof Error ? prismaErr.message : String(prismaErr));
+      const existing = await prisma.user.findFirst({ where: { email } });
+      if (existing) {
+        return await prisma.user.update({
+          where: { id: existing.id },
+          data: { supabaseId: user.id, name: user.user_metadata?.name ?? null },
+        }) as User;
+      }
+      return null;
+    }
   } catch (err) {
-    console.error("[auth] getCurrentUser error:", err);
+    console.error("[auth] getCurrentUser error:", err instanceof Error ? err.message : String(err));
     return null;
   }
 }
