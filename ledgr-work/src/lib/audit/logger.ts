@@ -1,3 +1,5 @@
+import type { Prisma, PrismaClient } from "@prisma/client";
+
 /**
  * LEDGR Audit Logging System
  *
@@ -353,38 +355,21 @@ export function auditReconciliationRun(
  *   await persistAuditLog(prisma, [log]);
  */
 export async function persistAuditLog(
-  prisma: {
-    auditLog: {
-      createMany: (args: { data: AuditLogRecord[] }) => Promise<unknown>;
-    };
-  },
+  prisma: Pick<PrismaClient, "auditLog">,
   entries: AuditLogEntry[]
 ): Promise<void> {
   if (entries.length === 0) return;
-  const data: AuditLogRecord[] = entries.map((e) => ({
+  const data = entries.map((e) => ({
     id: e.id,
     userId: e.userId,
     timestamp: e.timestamp,
     action: e.action,
     entityType: e.entityType,
     entityId: e.entityId,
-    before: e.before ?? undefined,
-    after: e.after ?? undefined,
+    before: (e.before ?? undefined) as Prisma.InputJsonValue | undefined,
+    after: (e.after ?? undefined) as Prisma.InputJsonValue | undefined,
     summary: e.summary,
-    metadata: e.metadata,
+    metadata: e.metadata as Prisma.InputJsonValue,
   }));
   await prisma.auditLog.createMany({ data });
-}
-
-interface AuditLogRecord {
-  id: string;
-  userId: string;
-  timestamp: Date;
-  action: string;
-  entityType: string;
-  entityId: string;
-  before?: Record<string, unknown>;
-  after?: Record<string, unknown>;
-  summary: string;
-  metadata: Record<string, unknown>;
 }
