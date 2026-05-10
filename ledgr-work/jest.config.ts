@@ -18,8 +18,6 @@ const config: Config = {
       tsconfig: {
         module: "commonjs",
         skipLibCheck: true,
-        // Allow tests/ dir which is excluded from main tsconfig
-        include: ["src/**/*", "tests/**/*"],
       }
     }],
   },

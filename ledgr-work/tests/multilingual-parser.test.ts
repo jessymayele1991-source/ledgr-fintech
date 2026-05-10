@@ -1,3 +1,5 @@
+export {};
+
 /**
  * LEDGR Multilingual Parser Test Suite
  *
