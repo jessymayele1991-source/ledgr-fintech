@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { apiError, apiSuccess } from "@/lib/utils/auth";
 import { createClientSchema } from "@/lib/validations/schemas";
 
+export const dynamic = "force-dynamic";
+
 function makeSupabase() {
   const cookieStore = cookies();
   return createServerClient(
@@ -49,8 +51,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(clients ?? []);
   } catch (err) {
-    console.error("[clients] GET error:", err instanceof Error ? err.message : String(err));
-    return apiError("Internal server error", 500);
+    return Response.json({ error: (err as Error).message, stack: (err as Error).stack }, { status: 500 });
   }
 }
 
@@ -91,7 +92,6 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess(client, 201);
   } catch (err) {
-    console.error("[clients] POST catch:", err instanceof Error ? err.stack : String(err));
-    return apiError("Internal server error", 500);
+    return Response.json({ error: (err as Error).message, stack: (err as Error).stack }, { status: 500 });
   }
 }
