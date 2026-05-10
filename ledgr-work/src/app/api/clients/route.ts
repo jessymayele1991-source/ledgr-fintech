@@ -85,13 +85,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error("[clients] insert error:", insertError.message);
+      console.error("[clients] insert error full:", JSON.stringify(insertError));
       return apiError("Internal server error", 500);
     }
 
     return apiSuccess(client, 201);
   } catch (err) {
-    console.error("[clients] POST error:", err instanceof Error ? err.message : String(err));
+    console.error("[clients] POST catch:", err instanceof Error ? err.stack : String(err));
     return apiError("Internal server error", 500);
   }
 }
