@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
@@ -154,7 +155,7 @@ export async function POST(request: NextRequest) {
           accountId: settings.accountId ?? null,
           importId: importRecord.id,
           transactionHash: hash,
-          rawData: norm.rawData,
+          rawData: norm.rawData as Prisma.InputJsonValue,
         })),
         skipDuplicates: true, // extra safety: DB-level dedup
       });
