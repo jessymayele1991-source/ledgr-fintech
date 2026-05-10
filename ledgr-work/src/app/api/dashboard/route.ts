@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { prisma } from "@/lib/db/prisma";
-import { getCurrentUser, apiError, apiSuccess } from "@/lib/utils/auth";
+import { apiError, apiSuccess } from "@/lib/utils/auth";
 import { dashboardQuerySchema } from "@/lib/validations/schemas";
 import {
   calculateSummary,
@@ -10,16 +9,11 @@ import {
   calculateCategoryBreakdown,
   calculateYearlyData,
 } from "@/lib/accounting/engine";
-import type { Prisma } from "@prisma/client";
 import type { Transaction } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
-    // ── Auth diagnostics ──────────────────────────────────────────────────
     const cookieStore = cookies();
-    const allCookies = cookieStore.getAll();
-    console.log("[dashboard] cookies present:", allCookies.map((c) => c.name));
-
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -30,14 +24,9 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-    const { data: { user: sbUser }, error: sbError } = await supabase.auth.getUser();
-    console.log("[dashboard] SUPABASE_URL set:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log("[dashboard] getUser error:", sbError?.message ?? "none");
-    console.log("[dashboard] getUser userId:", sbUser?.id ?? "null");
-    console.log("[dashboard] getUser email:", sbUser?.email ?? "null");
-    // ─────────────────────────────────────────────────────────────────────
 
-    const user = await getCurrentUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) console.error("[dashboard] auth error:", authError.message);
     if (!user) return apiError("Unauthorized", 401);
 
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
@@ -46,24 +35,28 @@ export async function GET(request: NextRequest) {
 
     const { dateFrom, dateTo, accountId } = parsed.data;
 
-    const where: Prisma.TransactionWhereInput = {
-      userId: user.id,
-      ...(dateFrom && { date: { gte: new Date(dateFrom) } }),
-      ...(dateTo && { date: { ...(dateFrom ? { gte: new Date(dateFrom) } : {}), lte: new Date(dateTo) } }),
-      ...(accountId && { accountId }),
-    };
+    let query = supabase
+      .from("transactions")
+      .select("*, category:categories(*)")
+      .eq("userId", user.id)
+      .order("date", { ascending: true });
 
-    const rawTransactions = await prisma.transaction.findMany({
-      where,
-      include: { category: true },
-      orderBy: { date: "asc" },
-    });
+    if (dateFrom) query = query.gte("date", dateFrom);
+    if (dateTo) query = query.lte("date", dateTo);
+    if (accountId) query = query.eq("accountId", accountId);
 
-    const transactions: Transaction[] = rawTransactions.map((tx) => ({
+    const { data: rows, error: txError } = await query;
+    if (txError) {
+      console.error("[dashboard] query error:", txError.message);
+      return apiError("Internal server error", 500);
+    }
+
+    const transactions: Transaction[] = (rows ?? []).map((tx) => ({
       ...tx,
       amount: Number(tx.amount),
       signedAmount: Number(tx.signedAmount),
-      rawData: tx.rawData as Record<string, unknown> | null,
+      date: new Date(tx.date),
+      rawData: tx.rawData ?? null,
       category: tx.category ?? null,
       client: null,
       account: null,
@@ -75,13 +68,22 @@ export async function GET(request: NextRequest) {
     const expenseBreakdown = calculateCategoryBreakdown(transactions, "EXPENSE");
     const incomeBreakdown = calculateCategoryBreakdown(transactions, "INCOME");
 
-    const recentTransactions = rawTransactions
-      .filter((tx) => tx.type !== "TRANSFER")
+    const recentTransactions = (rows ?? [])
+      .filter((tx: { type: string }) => tx.type !== "TRANSFER")
       .slice(-10)
       .reverse()
-      .map((tx) => ({
+      .map((tx: {
+        id: string;
+        date: string;
+        amount: number | string;
+        signedAmount: number | string;
+        type: string;
+        description: string | null;
+        counterpartyName: string | null;
+        currency: string;
+      }) => ({
         id: tx.id,
-        date: tx.date.toISOString(),
+        date: new Date(tx.date).toISOString(),
         amount: Number(tx.amount),
         signedAmount: Number(tx.signedAmount),
         type: tx.type,
@@ -103,7 +105,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("[dashboard] GET error:", err);
+    console.error("[dashboard] GET error:", err instanceof Error ? err.message : String(err));
     return apiError("Internal server error", 500);
   }
 }
