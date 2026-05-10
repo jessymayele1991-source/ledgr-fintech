@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const { data: clients, error: dbError } = await query;
     if (dbError) {
       console.error("[clients] query error:", dbError.message);
-      return apiError("Internal server error", 500);
+      return apiError(`DB_ERROR: ${dbError.message} | code: ${dbError.code} | details: ${dbError.details}`, 500);
     }
 
     return apiSuccess(clients ?? []);
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error("[clients] insert error full:", JSON.stringify(insertError));
-      return apiError("Internal server error", 500);
+      return apiError(`DB_ERROR: ${insertError.message} | code: ${insertError.code} | details: ${insertError.details}`, 500);
     }
 
     return apiSuccess(client, 201);
