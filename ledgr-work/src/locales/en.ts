@@ -488,5 +488,7 @@ const en = {
   },
 } as const;
 
-export type Translations = typeof en;
+type DeepString<T> = { [K in keyof T]: T[K] extends string ? string : DeepString<T[K]> };
+
+export type Translations = DeepString<typeof en>;
 export default en;
