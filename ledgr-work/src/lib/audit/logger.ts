@@ -368,10 +368,10 @@ export async function persistAuditLog(
     action: e.action,
     entityType: e.entityType,
     entityId: e.entityId,
-    before: e.before ? JSON.stringify(e.before) : null,
-    after: e.after ? JSON.stringify(e.after) : null,
+    before: e.before ?? undefined,
+    after: e.after ?? undefined,
     summary: e.summary,
-    metadata: JSON.stringify(e.metadata),
+    metadata: e.metadata,
   }));
   await prisma.auditLog.createMany({ data });
 }
@@ -383,8 +383,8 @@ interface AuditLogRecord {
   action: string;
   entityType: string;
   entityId: string;
-  before: string | null;
-  after: string | null;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
   summary: string;
-  metadata: string;
+  metadata: Record<string, unknown>;
 }
