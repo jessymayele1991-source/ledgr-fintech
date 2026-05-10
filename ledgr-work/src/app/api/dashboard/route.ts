@@ -9,7 +9,6 @@ import {
   calculateCategoryBreakdown,
   calculateYearlyData,
 } from "@/lib/accounting/engine";
-import type { Transaction } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     const categoryMap = new Map((catRows ?? []).map((c) => [c.id, c]));
 
-    const transactions: Transaction[] = (rows ?? []).map((tx) => ({
+    const transactions = (rows ?? []).map((tx) => ({
       id: tx.id,
       userId: tx.user_id ?? tx.userId ?? "",
       date: new Date(tx.date),
