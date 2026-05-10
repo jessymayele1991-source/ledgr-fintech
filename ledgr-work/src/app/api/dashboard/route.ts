@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("transactions")
       .select("*, category:categories(*)")
-      .eq("userId", user.id)
+      .eq("user_id", user.id)
       .order("date", { ascending: true });
 
     if (dateFrom) query = query.gte("date", dateFrom);
