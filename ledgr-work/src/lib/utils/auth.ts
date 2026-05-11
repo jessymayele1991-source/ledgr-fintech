@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import type { User } from "@/types";
 
-export async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser(out?: { reason?: string }): Promise<User | null> {
+  const setReason = (r: string) => { if (out) out.reason = r; };
   try {
     const cookieStore = cookies();
 
@@ -29,11 +30,12 @@ export async function getCurrentUser(): Promise<User | null> {
     );
 
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) console.error("[auth] getUser error:", error.message);
-    if (!user) return null;
+    if (error) { setReason(`supabase: ${error.message}`); console.error("[auth] getUser error:", error.message); return null; }
+    if (!user) { setReason("no supabase user — session missing or expired"); return null; }
 
     const email = user.email;
     if (!email) {
+      setReason(`supabase user ${user.id} has no email`);
       console.error("[auth] Supabase user missing email:", user.id);
       return null;
     }
@@ -55,7 +57,8 @@ export async function getCurrentUser(): Promise<User | null> {
     } catch (prismaErr) {
       // Upsert can fail on email unique constraint if same email exists
       // under a different supabaseId — fall back to find-then-update.
-      console.error("[auth] upsert failed:", prismaErr instanceof Error ? prismaErr.message : String(prismaErr));
+      const prismaMsg = prismaErr instanceof Error ? prismaErr.message : String(prismaErr);
+      console.error("[auth] upsert failed:", prismaMsg);
       const existing = await prisma.user.findFirst({ where: { email } });
       if (existing) {
         return await prisma.user.update({
@@ -63,10 +66,13 @@ export async function getCurrentUser(): Promise<User | null> {
           data: { supabaseId: user.id, name: user.user_metadata?.name ?? null },
         }) as User;
       }
+      setReason(`prisma upsert failed, no user for email ${email}: ${prismaMsg}`);
       return null;
     }
   } catch (err) {
-    console.error("[auth] getCurrentUser error:", err instanceof Error ? err.message : String(err));
+    const msg = err instanceof Error ? err.message : String(err);
+    setReason(`unexpected: ${msg}`);
+    console.error("[auth] getCurrentUser error:", msg);
     return null;
   }
 }

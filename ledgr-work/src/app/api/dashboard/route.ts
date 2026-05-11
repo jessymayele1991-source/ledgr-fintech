@@ -16,8 +16,9 @@ export async function GET(request: NextRequest) {
   try {
     // Use getCurrentUser() so user.id is the Prisma CUID that matches
     // transactions.userId and categories.userId in the database.
-    const user = await getCurrentUser();
-    if (!user) return apiError("Unauthorized", 401);
+    const out: { reason?: string } = {};
+    const user = await getCurrentUser(out);
+    if (!user) return apiError(out.reason ?? "Unauthorized", 401);
 
     const cookieStore = cookies();
     const supabase = createServerClient(
