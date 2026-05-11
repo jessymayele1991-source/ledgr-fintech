@@ -98,9 +98,43 @@ Architecture is ready in `src/lib/import/pdf-provider.ts`.
 
 ## 7. Production Checklist
 
-- [ ] DATABASE_URL → Transaction Pooler port 6543
-- [ ] DIRECT_URL → Direct connection port 5432
-- [ ] `npm run db:migrate` run
-- [ ] Vercel env vars set
-- [ ] Supabase auth redirect URLs configured
-- [ ] RLS enabled on all Supabase tables
+- [ ] DATABASE_URL → Transaction Pooler **port 6543** with `?pgbouncer=true` suffix
+  - Wrong port or missing suffix = every API route returns 401 (all routes call `getCurrentUser()` which upserts via Prisma)
+- [ ] DIRECT_URL → Direct connection **port 5432** (no pgbouncer suffix)
+- [ ] `npm run db:push` (or `db:migrate`) run against the production DB
+- [ ] All four env vars set in Vercel Dashboard (Settings → Environment Variables):
+  - `DATABASE_URL`
+  - `DIRECT_URL`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- [ ] Supabase auth redirect URLs configured (Settings → Auth → URL Configuration)
+- [ ] RLS on Supabase tables: either disabled **or** proper policies added (see note below)
+
+### RLS Note
+
+The `clients` and `dashboard` routes query via the Supabase JS client using `userId` (the Prisma CUID).
+If RLS is enabled on these tables you need a policy that joins through the `users` table:
+
+```sql
+-- Run in Supabase SQL Editor
+CREATE POLICY "own_clients" ON clients
+  FOR ALL USING (
+    "userId" = (SELECT id FROM users WHERE "supabaseId" = auth.uid())
+  );
+
+CREATE POLICY "own_transactions_dashboard" ON transactions
+  FOR ALL USING (
+    "userId" = (SELECT id FROM users WHERE "supabaseId" = auth.uid())
+  );
+
+CREATE POLICY "own_categories_dashboard" ON categories
+  FOR ALL USING (
+    "userId" = (SELECT id FROM users WHERE "supabaseId" = auth.uid())
+  );
+```
+
+Without policies, enabling RLS blocks all rows — do not enable RLS unless you add policies first.
+
+### Column Names
+
+All tables are created by Prisma (`npm run db:push`). Columns use **camelCase** exactly as written in `prisma/schema.prisma` (e.g. `userId`, `isActive`, `signedAmount`, `vatNumber`). There is no snake_case mapping.
