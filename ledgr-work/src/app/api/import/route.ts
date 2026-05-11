@@ -7,6 +7,7 @@ import { processImportFile } from "@/lib/import/engine";
 import { validateTransactionBatch, filterValidTransactions } from "@/lib/import/validator";
 import { generateTransactionHash, determineTransactionType } from "@/lib/accounting/engine";
 import { normalizeIban } from "@/lib/import/number-parser";
+import { autoCategorizePOSTImport } from "@/lib/categorization/post-import";
 import type { NormalizedTransaction } from "@/types";
 
 const ALLOWED_EXTENSIONS = ["csv", "xlsx", "xls", "mt940", "mt942", "mta", "sta", "xml", "txt", "pdf", "940"];
@@ -193,6 +194,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // ── Auto-categorize newly imported transactions ──────────────────────
+    // Non-fatal: if this fails the import result is still returned successfully.
+    let categorizedRows = 0;
+    if (importedRows > 0) {
+      try {
+        const categorizeResult = await autoCategorizePOSTImport(user.id, importRecord.id);
+        categorizedRows = categorizeResult.categorized;
+        console.log(
+          `[import] auto-categorized ${categorizedRows}/${categorizeResult.total} transactions`
+        );
+      } catch (err) {
+        console.error("[import] auto-categorize failed (non-fatal):", err);
+      }
+    }
+
     return apiSuccess(
       {
         importId: importRecord.id,
@@ -202,6 +218,7 @@ export async function POST(request: NextRequest) {
         importedRows,
         skippedRows,
         errorRows: processed.errorRows,
+        categorizedRows,
         parseErrors: processed.errors.slice(0, 20),
         metadata: processed.metadata ?? null,
       },
