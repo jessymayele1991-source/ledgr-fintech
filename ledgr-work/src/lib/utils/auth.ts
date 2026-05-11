@@ -15,8 +15,14 @@ export async function getCurrentUser(): Promise<User | null> {
           getAll() {
             return cookieStore.getAll();
           },
-          setAll() {
-            // No-op in API routes — middleware handles session refresh
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // Ignored when called from a Server Component
+            }
           },
         },
       }
